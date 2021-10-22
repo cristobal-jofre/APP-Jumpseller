@@ -1,0 +1,7 @@
+{
+    "dburi": "postgres://fbbbztog:w4RQ01xbAYWBTupBll5_5cp3duLMIJQX@rajje.db.elephantsql.com:5432/fbbbztog",
+    "secret": "secreto",
+    "basename": "",
+    "secretToken": "secreto",
+    "staticFolderPath": "src/static/upload"
+}
