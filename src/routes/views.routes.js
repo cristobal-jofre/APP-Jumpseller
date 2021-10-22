@@ -1,9 +1,11 @@
-const { Router } = require('express');
+import { Router } from 'express';
 
 const router = Router();
 
+// Get render of views
+
 router.get('/', (req, res) => {
-    res.render('<h1>hello world</h1>')
+    res.render('index');
 });
 
-exports.router = router;
+export default router;
