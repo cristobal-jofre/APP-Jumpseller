@@ -16,6 +16,8 @@ var _config = require("./config.json");
 
 var _views = _interopRequireDefault(require("./routes/views.routes"));
 
+var _Oauth = _interopRequireDefault(require("./routes/Oauth2.routes"));
+
 var app = (0, _express["default"])();
 app.set('PORT', process.env.PORT || 8000);
 app.set('view engine', 'ejs');
@@ -29,6 +31,7 @@ app.use(_bodyParser["default"].urlencoded({
   parameterLimit: 50000
 }));
 app.use("".concat(_config.basename), _views["default"]);
+app.use("".concat(_config.basename, "/api/auth"), _Oauth["default"]);
 var PORT = app.get('PORT');
 app.listen(PORT, function () {
   console.log("Server on port ".concat(PORT));

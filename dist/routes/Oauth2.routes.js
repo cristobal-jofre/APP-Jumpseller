@@ -7,13 +7,11 @@ exports["default"] = void 0;
 
 var _express = require("express");
 
-var router = (0, _express.Router)(); // Get render of views
+var _Oauth = require("../middleware/Oauth2");
 
-router.get('/', function (req, res) {
-  res.render('index');
-});
-router.get('/xd', function (req, res) {
-  res.send('<h1>dfdsf</h1>');
-});
+var router = (0, _express.Router)(); // Get
+
+router.get('/Oauth2', _Oauth.authentication);
+router.get('/Oauth2/callback', _Oauth.getToken);
 var _default = router;
 exports["default"] = _default;
