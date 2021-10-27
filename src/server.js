@@ -4,8 +4,8 @@ import MethodOverride from 'method-override';
 import path from 'path';
 import cors from 'cors';
 import { basename } from './config.json';
-
 import ViewsRoutes from './routes/views.routes';
+import Oauth2Routes from './routes/Oauth2.routes';
 
 const app = express();
 
@@ -23,6 +23,7 @@ app.use(BodyParser.urlencoded({
 }));
 
 app.use(`${basename}`, ViewsRoutes);
+app.use(`${basename}/api/auth`, Oauth2Routes);
 
 const PORT = app.get('PORT');
 
