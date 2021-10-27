@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/server.js --exec babel-node",
-    "build": "babel src/routes --out-dir dist/routes && babel src/server.js --out-dir dist && babel src/middleware --out-dir dist/middleware",
+    "build": "babel src/routes --out-dir dist/routes && babel src/server.js --out-dir dist && babel src/middleware --out-dir dist/middleware && babel src/views --out-dir dist/views && babel src/static --out-dir dist/static",
     "start": "node dist/server.js"
   },
   "keywords": [],
