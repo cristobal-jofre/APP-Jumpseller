@@ -23,18 +23,18 @@ const client = new AuthorizationCode(config);
 export const authentication = async (req, res) => {
     try {
         const authorizationUri = client.authorizeURL({
-            //redirect_uri: 'http://localhost:8000/api/auth/Oauth2/callback',
-            redirect_uri: 'https://jumpseller.herokuapp.com/api/auth/Oauth2/callback',
-            scope: ['read_orders']
+            redirect_uri: 'http://localhost:8000/api/auth/Oauth2/callback',
+            //redirect_uri: 'https://jumpseller.herokuapp.com/api/auth/Oauth2/callback',
+            scope: ['read_products', 'write_products']
         });
 
         return res.status(200).json({
-            msg: 'exito',
+            msg: 'Autenticación completada exitosamente',
             redirect: authorizationUri
         });
     } catch (error) {
         return res.status(500).json({
-            msg: 'malo',
+            msg: 'Error al obtener la autenticación',
             error
         })
     }
@@ -44,20 +44,19 @@ export const getToken = async (req, res) => {
     const code = req.url.split('=')[1];
     const tokenParams = {
         code: code,
-        //redirect_uri: 'http://localhost:8000/api/auth/Oauth2/callback',
-        redirect_uri: 'https://jumpseller.herokuapp.com/api/auth/Oauth2/callback',
-        scope: ['read_orders']
+        redirect_uri: 'http://localhost:8000/api/auth/Oauth2/callback',
+        //redirect_uri: 'https://jumpseller.herokuapp.com/api/auth/Oauth2/callback',
+        scope: ['read_products', 'write_products']
     };
 
     try {
         const data = await client.getToken(tokenParams);
-        console.log(data)
-        //res.redirect('http://localhost:8000/xd')
-        res.redirect('https://jumpseller.herokuapp.com/xd')
+        res.redirect('http://localhost:8000/products')
+        //res.redirect('https://jumpseller.herokuapp.com/xd')
     } catch (error) {
         return res.status(500).json({
-            msg: 'malo',
+            msg: 'Error al obtener la autenticación',
             error
         })
     }
-}
+};
