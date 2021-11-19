@@ -16,6 +16,7 @@ const config = {
     auth: {
         tokenHost: HOST
     }
+    
 };
 
 const client = new AuthorizationCode(config);
