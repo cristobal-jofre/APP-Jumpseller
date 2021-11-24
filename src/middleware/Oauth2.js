@@ -16,6 +16,7 @@ const config = {
     auth: {
         tokenHost: HOST
     }
+    
 };
 
 const client = new AuthorizationCode(config);
@@ -29,7 +30,7 @@ export const authentication = async (req, res) => {
         });
 
         return res.status(200).json({
-            msg: 'exito',
+            msg: 'Autenticación completada exitosamente',
             redirect: authorizationUri
         });
     } catch (error) {
@@ -60,4 +61,4 @@ export const getToken = async (req, res) => {
             error
         })
     }
-}
+};
