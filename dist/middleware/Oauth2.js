@@ -41,7 +41,7 @@ var authentication = /*#__PURE__*/function () {
               scope: ['read_products', 'write_products']
             });
             return _context.abrupt("return", res.status(200).json({
-              msg: 'exito',
+              msg: 'Autenticación completada exitosamente',
               redirect: authorizationUri
             }));
 

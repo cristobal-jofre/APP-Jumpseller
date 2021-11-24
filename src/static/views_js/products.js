@@ -18,7 +18,7 @@ const tabla = $("#table-productos").DataTable({
 
 getProducts = async () => {
 	try {
-		const dataRaw = await fetch('./api/products');
+		const dataRaw = await fetch('./api/products/');
 		if (dataRaw.status === 200) {
 			const { data } = await dataRaw.json();
             console.log(data)
