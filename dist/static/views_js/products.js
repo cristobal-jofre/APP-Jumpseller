@@ -20,10 +20,14 @@ const tabla = $("#table-productos").DataTable({
 			},
 		},
 		{
-			data: "select",
+			defaultContent: `<checkbox>
+									Seleccionar 
+									<i class="fas fa-align-justify"></i>
+							</checkbox>`,
+		
 		},
 		{
-			defaultContent: `<button type='button' name='editButton' class='btn btn-info'>
+			defaultContent: `<button type='button' name='dataButton' class='btn btn-info'>
 									Agregar garantía extendida 
 									<i class="fas fa-align-justify"></i>
 							</button>`,
