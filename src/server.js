@@ -11,7 +11,7 @@ import ProductsRoutes from './routes/products.routes';
 
 const app = express();
 
-app.set('PORT', process.env.PORT || 9000);
+app.set('PORT', process.env.PORT || 8000);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
