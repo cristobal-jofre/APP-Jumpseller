@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/server.js --exec babel-node",
-    "build": "babel src/routes --out-dir dist/routes && babel src/server.js --out-dir dist && babel src/middleware --out-dir dist/middleware",
+    "build": "babel src/routes --out-dir dist/routes && babel src/server.js --out-dir dist && babel src/middleware --out-dir dist/middleware && babel src/controllers --out-dir dist/controllers",
     "start": "node dist/server.js"
   },
   "keywords": [],
@@ -14,7 +14,9 @@
   "dependencies": {
     "@babel/plugin-transform-runtime": "^7.12.1",
     "@babel/runtime": "^7.12.5",
+    "axios": "^0.24.0",
     "body-parser": "^1.19.0",
+    "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "ejs": "^3.1.6",
     "express": "^4.17.1",

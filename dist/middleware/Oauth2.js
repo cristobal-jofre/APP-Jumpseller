@@ -36,8 +36,9 @@ var authentication = /*#__PURE__*/function () {
           case 0:
             _context.prev = 0;
             authorizationUri = client.authorizeURL({
-              redirect_uri: 'http://localhost:8000/api/auth/Oauth2/callback',
-              scope: ['read_orders']
+              //redirect_uri: 'https://localhost:8000/api/auth/Oauth2/callback',
+              redirect_uri: 'https://jumpseller.herokuapp.com/api/auth/Oauth2/callback',
+              scope: ['read_products', 'write_products']
             });
             return _context.abrupt("return", res.status(200).json({
               msg: 'exito',
@@ -48,7 +49,7 @@ var authentication = /*#__PURE__*/function () {
             _context.prev = 5;
             _context.t0 = _context["catch"](0);
             return _context.abrupt("return", res.status(500).json({
-              msg: 'malo',
+              msg: 'Error al solicitar los permisos',
               error: _context.t0
             }));
 
@@ -69,7 +70,8 @@ exports.authentication = authentication;
 
 var getToken = /*#__PURE__*/function () {
   var _ref2 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(req, res) {
-    var code, tokenParams, data;
+    var code, tokenParams, _yield$client$getToke, token;
+
     return _regenerator["default"].wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
@@ -77,34 +79,37 @@ var getToken = /*#__PURE__*/function () {
             code = req.url.split('=')[1];
             tokenParams = {
               code: code,
-              redirect_uri: 'http://localhost:8000/api/auth/Oauth2/callback',
-              scope: ['read_orders']
+              //redirect_uri: 'https://localhost:8000/api/auth/Oauth2/callback',
+              redirect_uri: 'https://jumpseller.herokuapp.com/api/auth/Oauth2/callback',
+              scope: ['read_products', 'write_products']
             };
             _context2.prev = 2;
             _context2.next = 5;
             return client.getToken(tokenParams);
 
           case 5:
-            data = _context2.sent;
-            console.log(data);
-            res.redirect('http://localhost:8000/xd');
-            _context2.next = 13;
+            _yield$client$getToke = _context2.sent;
+            token = _yield$client$getToke.token;
+            res.cookie('auth', JSON.stringify(token)); //res.redirect('https://localhost:8000/products')
+
+            res.redirect('https://jumpseller.herokuapp.com/products');
+            _context2.next = 14;
             break;
 
-          case 10:
-            _context2.prev = 10;
+          case 11:
+            _context2.prev = 11;
             _context2.t0 = _context2["catch"](2);
             return _context2.abrupt("return", res.status(500).json({
-              msg: 'malo',
+              msg: 'Error al obtener el token',
               error: _context2.t0
             }));
 
-          case 13:
+          case 14:
           case "end":
             return _context2.stop();
         }
       }
-    }, _callee2, null, [[2, 10]]);
+    }, _callee2, null, [[2, 11]]);
   }));
 
   return function getToken(_x3, _x4) {

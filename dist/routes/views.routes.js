@@ -12,8 +12,8 @@ var router = (0, _express.Router)(); // Get render of views
 router.get('/', function (req, res) {
   res.render('index');
 });
-router.get('/xd', function (req, res) {
-  res.send('<h1>dfdsf</h1>');
+router.get('/products', function (req, res) {
+  res.render('products');
 });
 var _default = router;
 exports["default"] = _default;

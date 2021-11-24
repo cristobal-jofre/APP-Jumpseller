@@ -1,9 +1,8 @@
 const authorizationOauth2 = async () => {
     try {
-        const dataRaw = await fetch(`./api/auth/Oauth2`);
+        const dataRaw = await fetch(`./api/auth/Oauth2/`);
         if (dataRaw.status === 200) {
             const { redirect } = await dataRaw.json();
-            console.log(redirect)
             window.open(redirect, '_self')
         } else {
             throw new Error("Error en la autenticación");
