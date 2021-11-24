@@ -19,7 +19,7 @@ export const getProducts = async (req, res) => {
         });
 
         const result = data.length > 0 ? data.map(value => {
-            return { ...value.product }
+            return { ...value.product, category:value.categories[0].name }
         }) : [];
 
         return res.status(200).json({

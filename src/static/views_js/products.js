@@ -8,10 +8,10 @@ const tabla = $("#table-productos").DataTable({
 	},
 	columns: [
 		{
-			data: "category"
+			data: "category",
 		},
 		{
-			data: "name"
+			data: "name",
 		},
 		{
 			data: "price",
@@ -20,10 +20,10 @@ const tabla = $("#table-productos").DataTable({
 			},
 		},
 		{
-			data: "select"
+			data: "select",
 		},
 		{
-			defaultContent: `<button type='button' name='dataButton' class='btn btn-info'>
+			defaultContent: `<button type='button' name='editButton' class='btn btn-info'>
 									Agregar garantía extendida 
 									<i class="fas fa-align-justify"></i>
 							</button>`,
