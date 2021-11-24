@@ -8,10 +8,27 @@ const tabla = $("#table-productos").DataTable({
 	},
 	columns: [
 		{
+			data: "category"
+		},
+		{
 			data: "name"
 		},
 		{
-			data: "price"
+			data: "price",
+			render: function (data, type, row) {
+				return `$${parseInt(row.price).toLocaleString("de-DE")}`;
+			},
+
+		},
+		{
+			data: "select"
+		},
+		{
+			defaultContent: `<button type='button' name='dataButton' class='btn btn-info'>
+									Agregar garantía extendida 
+									<i class="fas fa-align-justify"></i>
+								</button>`,
+
 		}
 	],
 });
