@@ -1,3 +1,4 @@
+import axios from 'axios'; 
 import {
     AuthorizationCode
 } from 'simple-oauth2';
@@ -24,8 +25,8 @@ const client = new AuthorizationCode(config);
 export const authentication = async (req, res) => {
     try {
         const authorizationUri = client.authorizeURL({
-            //redirect_uri: 'https://localhost:8000/api/auth/Oauth2/callback',
-            redirect_uri: 'https://jumpseller.herokuapp.com/api/auth/Oauth2/callback',
+            redirect_uri: 'https://localhost:8000/api/auth/Oauth2/callback',
+            // redirect_uri: 'https://jumpseller.herokuapp.com/api/auth/Oauth2/callback',
             scope: ['read_products', 'write_products']
         });
 
@@ -45,16 +46,17 @@ export const getToken = async (req, res) => {
     const code = req.url.split('=')[1];
     const tokenParams = {
         code: code,
-        //redirect_uri: 'https://localhost:8000/api/auth/Oauth2/callback',
-        redirect_uri: 'https://jumpseller.herokuapp.com/api/auth/Oauth2/callback',
+        redirect_uri: 'https://localhost:8000/api/auth/Oauth2/callback',
+        // redirect_uri: 'https://jumpseller.herokuapp.com/api/auth/Oauth2/callback',
         scope: ['read_products', 'write_products']
     };
 
     try {
         const { token } = await client.getToken(tokenParams);
+        console.log(token)
         res.cookie('auth', JSON.stringify(token));
-        //res.redirect('https://localhost:8000/products')
-        res.redirect('https://jumpseller.herokuapp.com/products')
+        res.redirect('http://localhost:8000/login')
+        // res.redirect('https://jumpseller.herokuapp.com/products')
     } catch (error) {
         return res.status(500).json({
             msg: 'Error al obtener el token',
@@ -62,3 +64,18 @@ export const getToken = async (req, res) => {
         })
     }
 };
+
+export const authenticationPerk = async (req, res) => {
+    console.log(req.body)
+    const { data } = req.body;
+    console.log(data);
+
+    const result = await axios.post(`https://localhost:3000/shield/api/v1/user/login`, data);
+
+    console.log(result)
+
+    return res.status(200).json({
+        msg: "exito",
+        data: null
+    });
+}
