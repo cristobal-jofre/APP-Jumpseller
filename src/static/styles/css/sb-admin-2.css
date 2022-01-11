@@ -10584,19 +10584,19 @@ a:focus {
 }
 
 .bg-login-image {
-  background: url("../img/logo.png");
+  background: url("../images/logo.jpg");
   background-position: center;
   background-size: cover;
 }
 
 .bg-register-image {
-  background: url("../img/logo.png");
+  background: url("../images/logo.jpg");
   background-position: center;
   background-size: cover;
 }
 
 .bg-password-image {
-  background: url("../img/logo.png");
+  background: url("../images/logo.jpg");
   background-position: center;
   background-size: cover;
 }

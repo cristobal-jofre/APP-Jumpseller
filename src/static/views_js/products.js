@@ -1,3 +1,4 @@
+
 $(() => {
     getProducts();
 });
@@ -5,6 +6,7 @@ $(() => {
 let productSelected = [];
 let products = [];
 let totalProducts = 0;
+let productsWithWarranty = [];
 
 const tabla = $("#table-products").DataTable({
     language: {
@@ -35,23 +37,73 @@ const tabla = $("#table-products").DataTable({
             },
         },
         {
-            defaultContent: `<label>
-                                <input type="checkbox" name="addCheck" class="editor-active" id="checkAll"> Seleccionar
-                            </label>`,
+            render: function (data, type, row) {
+                if (row.variants.length > 0) {
+                    return `<label>
+                                 <input disabled type="checkbox" name="addCheck" class="editor-active" id="checkAll"> Este producto ya tiene garantía
+                            </label>`;
+                } else {
+                    if (row.selected) {
+                        return `<label>
+                                <input  type="checkbox" checked name="addCheck" class="editor-active" id="checkAll"> Seleccionar
+                                </label>`;
+                    } else {
+                        return `<label>
+                                    <input  type="checkbox" name="addCheck" class="editor-active" id="checkAll"> Seleccionar
+                                </label>`;
+                    }
+                }
+                // return `<label>
+                //                  <input  type="checkbox" name="addCheck" class="editor-active" id="checkAll"> Seleccionar
+                //             </label>`;
+            },
+        },
+        {
+            render: function (data, type, row) {
+                if (row.variants.length > 0) {
+                    return `<button  type='button' name='deleteButton' class='btn btn-danger'>
+									Eliminar <i class="fas fa-trash-alt"></i>
+							</button>`;
+                } else {
+                    return `<button disabled type='button' name='deleteButton' class='btn btn-danger'>
+									Eliminar <i class="fas fa-trash-alt"></i>
+							</button>`;
+                }
+            }
+
         },
     ],
 });
+
+
+getToken = async () => {
+    try {
+        const data = await fetch("./api/orders");
+        console.log(data);
+    } catch (error) {
+        swal({
+            title: "Obtener token",
+            icon: "error",
+            text: error,
+        });
+    }
+};
 
 getProducts = async () => {
     try {
         const dataRaw = await fetch("./api/products/");
         if (dataRaw.status === 200) {
             const { data } = await dataRaw.json();
-            tabla.clear();
-            tabla.rows.add(data);
-            tabla.draw();
-            products = data;
-            totalProducts = data.length;
+            const dataProducts = data.map(product => {
+                if (product.variants.length > 0) {
+                    productsWithWarranty.push(product);
+                }
+                return { ...product, 'selected': false }
+            })
+            productSelected = [];
+            renderTable(dataProducts);
+            products = dataProducts;
+            totalProducts = dataProducts.length;
         } else {
             throw new Error("Error al obtener los productos");
         }
@@ -70,16 +122,18 @@ $("#table-products").on("change", "input.editor-active", function () {
     const isProduct = productSelected.find((product) => product.id === data.id);
 
     if (isProduct) {
+        data.selected = false;
         productSelected = productSelected.filter(
             (product) => product.id !== data.id
         );
     } else {
+        data.selected = true;
         productSelected.push(data);
     }
+    console.log(productSelected)
 });
 
 getSkuAndValue = validity => {
-
     const mapper = {
         "M": "Meses",
     }
@@ -87,7 +141,7 @@ getSkuAndValue = validity => {
 
     const valueWarranty = `${quantity} ${mapper[unit]}`;
     return valueWarranty;
-}
+};
 
 getPlans = async () => {
     let { accessToken, key, secret } = JSON.parse(
@@ -103,33 +157,35 @@ getPlans = async () => {
             "x-access-token": accessToken,
         },
     };
+    try {
+        await Promise.all(
+            productSelected.map(async (product) => {
+                if (product.selected) {
+                    const rawResponseCategory = await fetch(
+                        `http://localhost:3001/vault-perk/api/v1/category/getNameByLabel/${product.category}`,
+                        config
+                    );
+                    const { category } = await rawResponseCategory.json();
+                    dataRequest.push({
+                        idProduct: product.id,
+                        category,
+                        price: product.price,
+                    });
+                }
+            })
+        );
+        console.log(dataRequest)
+    } catch (error) {
+        swal({
+            title: "Error",
+            icon: "error",
+            text: 'Ocurrió un error al obtener las categorías'
+        });
+    }
 
-    await Promise.all(
-        productSelected.map(async (product) => {
-            try{
-                const rawResponseCategory = await fetch(
-                    `http://localhost:3001/vault-perk/api/v1/category/getNameByLabel/${product.category}`,
-                    config
-                );
-                const { category } = await rawResponseCategory.json();
-                dataRequest.push({
-                    idProduct: product.id,
-                    category,
-                    price: product.price,
-                });
-            } catch (error){
-                swal({
-                    title: "Error",
-                    icon: "error",
-                    text: 'Ocurrió un error al obtener las categorias'
-                });
-            }
-        })
-    );
-
-    await Promise.all(
-        dataRequest.map(async (product) => {
-            try{
+    try {
+        await Promise.all(
+            dataRequest.map(async (product) => {
                 const rawResponse = await fetch(
                     `http://localhost:3001/vault-perk/api/v1/plan/get?price=${product.price}&category=${product.category}&type=gext`,
                     config
@@ -137,13 +193,15 @@ getPlans = async () => {
                 const { plans } = await rawResponse.json();
                 product.variants = [];
                 let name = "";
+
                 plans.forEach((plan) => {
-                    const { values } = plan;		
+                    const { values } = plan;
                     values.forEach((value, index) => {
-                        const valueWarranty = getSkuAndValue(value.validity);
-                        let valueCLP = new Intl.NumberFormat('es-CL', {currency: 'CLP', style: 'currency'}).format(value.priceCLP);
+                        let valueWarranty = getSkuAndValue(value.validity);
+                        let valueCLP = new Intl.NumberFormat('es-CL', { currency: 'CLP', style: 'currency' }).format(value.priceCLP);
+
                         const variant = {
-                            price: product.price, 
+                            price: product.price + value.priceCLP,
                             sku: `garantia-${index + 1}`,
                             stock: 100,
                             stock_unlimited: true,
@@ -155,67 +213,189 @@ getPlans = async () => {
                             ],
                         };
                         name = plan.name;
+                        if (index === 0) {
+                            product.variants.push({
+                                price: product.price,
+                                sku: `garantia-0`,
+                                stock: 100,
+                                stock_unlimited: true,
+                                options: [
+                                    {
+                                        name: name,
+                                        value: 'Sin Garantía',
+                                        test: value.priceCLP,
+                                    },
+                                ],
+                            });
+                        }
                         product.variants.push(variant);
                     });
                 });
-                product.variants.push({
-                    price: product.price,
-                    sku: `garantia-0`,
-                    // description: 'AGREGA TU SEGURO CONTRA ACCIDENTES (VER MÁS DETALLES)',
-                    stock: 100,
-                    stock_unlimited: true,
-                    options: [
-                        {
-                            name: name,
-                            value: 'Sin Garantía',
-                        },
-                    ],
-                });
-            } catch (error) {
-                swal({
-                    title: "Error",
-                    icon: "error",
-                    text: 'Ocurrió un error al agregar las garantías'
-                });
-            }
-        })
-    );
-    
+
+            })
+        );
+    } catch (error) {
+        swal({
+            title: "Error",
+            icon: "error",
+            text: 'Ocurrió un error al obtener las categorías'
+        });
+    }
+
     console.log("data request")
     console.log(dataRequest)
 
     let configAddWarranty = {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({data:dataRequest}),
+        body: JSON.stringify({ data: dataRequest }),
     };
-    const rawResponseWarranty = await fetch("./api/products/addWarranty", configAddWarranty);
 
-    if (rawResponseWarranty.status === 200) {
+    try {
+        const rawResponseWarranty = await fetch("./api/products/addWarranty", configAddWarranty);
+
+        if (rawResponseWarranty.status === 200) {
+            swal({
+                title: "¡ Éxito !",
+                icon: "success",
+                text: "Garantía extendida agregada exitosamente",
+                button: "OK",
+            }).then(() => {
+                getProducts();
+            })
+
+            if (dataRequest.length === 0) {
+                swal({
+                    title: "Error",
+                    icon: "error",
+                    text: 'Ocurrió un error al agregar las garantías'
+                });
+            }
+        } else {
+            throw new Error("Ocurrió un error al agregar las garantías extendidas");
+        }
+
+    } catch (error) {
         swal({
-            title: "¡ Éxito !",
-            icon: "success",
-            text: "Garantía extendida agregada exitosamente",
-            button: "OK",
-        })
-    } else {
-        throw new Error("Ocurrió un error al agregar las garantías extendidas");
+            title: "Error",
+            icon: "error",
+            text: 'Ocurrió un error al agregar las garantías'
+        });
     }
 };
 
-$("#checkAll").change(function () {
-    $("input:checkbox").prop("checked", $(this).prop("checked"));
-
-    if (productSelected.length == totalProducts) {// Todos seleccionados
-        productSelected = [];
-    } else if (productSelected.length > 0 && productSelected.length < totalProducts) {// Los borra y los vuelve a marcar
-        productSelected = [];
-        productSelected = products;
-    } else {
-        productSelected = products;
+$("#table-products").on("click", "button", function () {
+    let data = tabla.row($(this).parents("tr")).data();
+    if ($(this)[0].name == "deleteButton") {
+        swal({
+            title: `Eliminar garantía`,
+            icon: "warning",
+            text: `¿Está seguro/a de eliminar la garantía de "${data.name}"?`,
+            buttons: {
+                confirm: {
+                    text: "Eliminar",
+                    value: "exec",
+                },
+                cancel: {
+                    text: "Cancelar",
+                    value: "cancelar",
+                    visible: true,
+                },
+            },
+        }).then((action) => {
+            if (action == "exec") {
+                deleteWarranty(data);
+            } else {
+                swal.close();
+            }
+        });
     }
 });
 
+deleteWarranty = async (data) => {
+    const { id, variants } = data;
+
+    if (variants.length == 0) {
+        swal({
+            title: "Error",
+            icon: "error",
+            text: 'Producto no tiene garantía'
+        });
+        return;
+    }
+
+    let configdeleteWarranty = {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idProduct: id, options: variants[0].options[0].product_option_id }),
+    };
+
+    try {
+        const rawResponsedelete = await fetch("./api/products/deleteWarranty", configdeleteWarranty);
+
+        if (rawResponsedelete.status === 200) {
+            swal({
+                title: "¡ Éxito !",
+                icon: "success",
+                text: "Garantía extendida eliminada ",
+                button: "OK",
+            }).then(() => {
+                getProducts();
+            })
+        } else {
+            throw new Error("Ocurrió un error al eliminar las garantías extendidas");
+        }
+
+    } catch (error) {
+        swal({
+            title: "Error",
+            icon: "error",
+            text: 'Ocurrió un error al eliminar las garantías'
+        });
+    }
+};
+
+$("#btnSelect").on("click", function () {
+    if (productSelected.length == totalProducts) { // Todos seleccionados
+        productSelected = [];
+        renderTable(products);
+    } else {
+        productSelected = []
+        productsWithoutWarranty = getProductsNotChecked(products, productsWithWarranty);
+        productSelected = productsWithoutWarranty.map((product) => {
+            return { ...product, 'selected': true }
+        });
+        productsWithWarranty.forEach((product) => {
+            productSelected.push(product);
+        })
+        renderTable(productSelected);
+    }
+    console.log(productSelected)
+});
+
+removeItemFromArray = (array, item) => {
+    return array.filter( value => {
+        return value.id !== item.id;
+    });
+};
+
+
+getProductsNotChecked = (products, productsWithWarranty) => {
+    if (productsWithWarranty.length > 0) {
+        productsWithWarranty.forEach((product) => {
+            products = removeItemFromArray(products, product);
+        });
+    }
+    return products;
+}
+
+renderTable = (data) => {
+    tabla.clear();
+    tabla.rows.add(data);
+    tabla.draw();
+}
+
 $("#btnAdd").on("click", () => {
-    getPlans();
+    // getToken();
+    getPlans();   
 });

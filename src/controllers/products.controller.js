@@ -46,55 +46,79 @@ export const addWarranty = async (req, res) => {
         }
 
         const { data } = req.body;
+        const requests = [];
 
-        data.forEach(async (product) => {
+        const headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${access_token}`
+        }
+
+        data.map((product) => { // cambio de async
             const { idProduct, variants } = product;
-            variants.forEach(async (variant) => {
+            variants.map((variant) => { // cambio de async
                 const variantBody = { variant: variant };
-                console.log(variantBody)
-                const response = await axios.post(`https://api.jumpseller.com/v1/products/${idProduct}/variants.json`, variantBody, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Authorization': `Bearer ${access_token}`
+                requests.push(
+                    {
+                        url: `https://api.jumpseller.com/v1/products/${idProduct}/variants.json`,
+                        params: variantBody,
                     }
-                });
+                )
             })
         })
-
-        return res.status(200).json({
-            msg: 'Garantias agregadas exitosamente'
-        })
+        console.log(requests[0].params)
+        axios.all(requests.map((request) => axios.post(request.url, request.params, { headers })))
+            .then(() => {
+                return res.status(200).json({
+                    msg: 'Garantias agregadas exitosamente'
+                })
+            })
     } catch (error) {
         console.log(error);
         return res.status(500).json({
-            msg: 'Error al agregar los seguros',
+            msg: 'Error al agregar las garantías',
             error
         });
     }
 };
 
-/*
-product_category
-product_sku
-invoice_number
-client_name
-client_last_name
-client_id
-client_adress
-client_city
-client_email
-product_price
-product_unit_price
-warranty_date
-product_date
-product_brand
-product_model
-payment
-warranty_period
-warranty_period_unit
-sponsor
-warranty_price
-warranty_unit_price
-plan_id_perk
-*/
+const doRequest = (url) => {
+    axios.post(url, variantBody, {
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${access_token}`
+        }
+    })
+}
+
+export const deleteWarranty = async (req, res) => {
+    try {
+        const { access_token } = JSON.parse(req.cookies.auth) || undefined;
+
+        if (!access_token) {
+            return res.status(403).json({
+                msg: 'Acceso denegado'
+            })
+        }
+
+        const { idProduct, options } = req.body;
+
+        await axios.delete(`https://api.jumpseller.com/v1/products/${idProduct}/options/${options}.json`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${access_token}`
+            }
+        });
+
+        return res.status(200).json({
+            msg: 'Garantias eliminadas exitosamente'
+        })
+    } catch (error) {
+        return res.status(500).json({
+            msg: 'Error al eliminar las garantias',
+            error
+        });
+    }
+};

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import {addWarranty, getProducts } from '../controllers/products.controller';
+import {addWarranty, getProducts, deleteWarranty } from '../controllers/products.controller';
 
 const router = Router();
 
@@ -8,5 +8,8 @@ router.get('/', getProducts);
 
 // Post
 router.post('/addWarranty', addWarranty);
+
+// Delete
+router.delete('/deleteWarranty', deleteWarranty);
 
 export default router;
