@@ -40,7 +40,7 @@ const tabla = $("#table-products").DataTable({
             render: function (data, type, row) {
                 if (row.variants.length > 0) {
                     return `<label>
-                                 <input disabled type="checkbox" name="addCheck" class="editor-active" id="checkAll"> Este producto ya tiene garantía
+                                <input disabled type="checkbox" name="addCheck" class="editor-active" id="checkAll"> Este producto ya tiene garantía
                             </label>`;
                 } else {
                     if (row.selected) {
@@ -53,9 +53,6 @@ const tabla = $("#table-products").DataTable({
                                 </label>`;
                     }
                 }
-                // return `<label>
-                //                  <input  type="checkbox" name="addCheck" class="editor-active" id="checkAll"> Seleccionar
-                //             </label>`;
             },
         },
         {
@@ -79,7 +76,6 @@ const tabla = $("#table-products").DataTable({
 getToken = async () => {
     try {
         const data = await fetch("./api/orders");
-        console.log(data);
     } catch (error) {
         swal({
             title: "Obtener token",
@@ -130,7 +126,6 @@ $("#table-products").on("change", "input.editor-active", function () {
         data.selected = true;
         productSelected.push(data);
     }
-    console.log(productSelected)
 });
 
 getSkuAndValue = validity => {
@@ -143,115 +138,108 @@ getSkuAndValue = validity => {
     return valueWarranty;
 };
 
-getPlans = async () => {
-    let { accessToken, key, secret } = JSON.parse(
-        localStorage.getItem("dataAccess")
-    );
-
+getCategories = async (productSelected, config) => {
     const dataRequest = [];
 
-    const config = {
-        headers: {
-            API_KEY: key,
-            API_SECRET: secret,
-            "x-access-token": accessToken,
-        },
-    };
-    try {
-        await Promise.all(
-            productSelected.map(async (product) => {
-                if (product.selected) {
-                    const rawResponseCategory = await fetch(
-                        `http://localhost:3001/vault-perk/api/v1/category/getNameByLabel/${product.category}`,
-                        config
-                    );
-                    const { category } = await rawResponseCategory.json();
-                    dataRequest.push({
-                        idProduct: product.id,
-                        category,
-                        price: product.price,
-                    });
-                }
-            })
-        );
-        console.log(dataRequest)
-    } catch (error) {
-        swal({
-            title: "Error",
-            icon: "error",
-            text: 'Ocurrió un error al obtener las categorías'
-        });
-    }
-
-    try {
-        await Promise.all(
-            dataRequest.map(async (product) => {
-                const rawResponse = await fetch(
-                    `http://localhost:3001/vault-perk/api/v1/plan/get?price=${product.price}&category=${product.category}&type=gext`,
+    await Promise.all(
+        productSelected.map(async (product) => {
+            if (product.selected) {
+                const rawResponseCategory = await fetch(
+                    `http://localhost:3001/vault-perk/api/v1/category/getNameByLabel/${product.category}`,
                     config
                 );
-                const { plans } = await rawResponse.json();
-                product.variants = [];
-                let name = "";
+                const { category } = await rawResponseCategory.json();
+                dataRequest.push({
+                    idProduct: product.id,
+                    category,
+                    price: product.price,
+                });
+            }
+        })
+    );
 
-                plans.forEach((plan) => {
-                    const { values } = plan;
-                    values.forEach((value, index) => {
-                        let valueWarranty = getSkuAndValue(value.validity);
-                        let valueCLP = new Intl.NumberFormat('es-CL', { currency: 'CLP', style: 'currency' }).format(value.priceCLP);
+    return dataRequest;
+}
 
-                        const variant = {
-                            price: product.price + value.priceCLP,
-                            sku: `garantia-${index + 1}`,
+getPlans = async (dataRequest, config) => {
+    await Promise.all(
+        dataRequest.map(async (product) => {
+            const rawResponse = await fetch(
+                `http://localhost:3001/vault-perk/api/v1/plan/get?price=${product.price}&category=${product.category}&type=gext`,
+                config
+            );
+            const { plans } = await rawResponse.json();
+            product.variants = [];
+            let name = "";
+
+            plans.forEach((plan) => {
+                const { values } = plan;
+                values.forEach((value, index) => {
+                    let valueWarranty = getSkuAndValue(value.validity);
+                    let valueCLP = new Intl.NumberFormat('es-CL', { currency: 'CLP', style: 'currency' }).format(value.priceCLP);
+
+                    const variant = {
+                        price: product.price + value.priceCLP,
+                        sku: `garantia-${index + 1}`,
+                        stock: 100,
+                        stock_unlimited: true,
+                        options: [
+                            {
+                                name: plan.name,
+                                value: `${valueWarranty} - ${valueCLP}`,
+                            },
+                        ],
+                    };
+                    name = plan.name;
+                    if (index === 0) {
+                        product.variants.push({
+                            price: product.price,
+                            sku: `garantia-0`,
                             stock: 100,
                             stock_unlimited: true,
                             options: [
                                 {
-                                    name: plan.name,
-                                    value: `${valueWarranty} - ${valueCLP}`,
+                                    name: name,
+                                    value: 'Sin Garantía',
+                                    test: value.priceCLP,
                                 },
                             ],
-                        };
-                        name = plan.name;
-                        if (index === 0) {
-                            product.variants.push({
-                                price: product.price,
-                                sku: `garantia-0`,
-                                stock: 100,
-                                stock_unlimited: true,
-                                options: [
-                                    {
-                                        name: name,
-                                        value: 'Sin Garantía',
-                                        test: value.priceCLP,
-                                    },
-                                ],
-                            });
-                        }
-                        product.variants.push(variant);
-                    });
+                        });
+                    }
+                    product.variants.push(variant);
                 });
+            });
+        })
+    );
 
-            })
-        );
-    } catch (error) {
-        swal({
-            title: "Error",
-            icon: "error",
-            text: 'Ocurrió un error al obtener las categorías'
-        });
-    }
+    return dataRequest;
+}
 
-    console.log("data request")
-    console.log(dataRequest)
-
-    let configAddWarranty = {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ data: dataRequest }),
-    };
-
+addPlans = async () => {
     try {
+        let { accessToken, key, secret } = JSON.parse(
+            localStorage.getItem("dataAccess")
+        );
+
+        const config = {
+            headers: {
+                API_KEY: key,
+                API_SECRET: secret,
+                "x-access-token": accessToken,
+            },
+        };
+
+        let dataRequest = [];
+
+        dataRequest = getCategories(productSelected, config);
+        dataRequest = getPlans(dataRequest, config);
+
+        let configAddWarranty = {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ data: dataRequest }),
+        };
+
         const rawResponseWarranty = await fetch("./api/products/addWarranty", configAddWarranty);
 
         if (rawResponseWarranty.status === 200) {
@@ -370,11 +358,10 @@ $("#btnSelect").on("click", function () {
         })
         renderTable(productSelected);
     }
-    console.log(productSelected)
 });
 
 removeItemFromArray = (array, item) => {
-    return array.filter( value => {
+    return array.filter(value => {
         return value.id !== item.id;
     });
 };
@@ -396,6 +383,5 @@ renderTable = (data) => {
 }
 
 $("#btnAdd").on("click", () => {
-    // getToken();
-    getPlans();   
+    addPlans();
 });
