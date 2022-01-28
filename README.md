@@ -6,6 +6,6 @@ través de la API de Jumpseller. Además de enviando peticiones POST para crear 
 Tecnologías utilizadas: 
 - Node.Js 
 - JavaScript
-- Query 
+- JQuery 
 - HTML 
 - CSS
