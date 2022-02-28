@@ -1,9 +1,8 @@
 # APP
 
-Desarrollo de integración con e-commerce Jumpseller, para la venta de seguros/garantías a través de la plataforma. El sistema logra obtener los productos de cada tienda a
-través de la API de Jumpseller. Además de enviando peticiones POST para crear dentro de cada producto las garantías obtenidas de la base de datos de Perk. (
+Development of integration with e-commerce Jumpseller, for the sale of insurance/guarantees through the platform. The system manages to obtain the products of each store through the Jumpseller API. In addition to sending POST requests to create within each product the guarantees obtained from the Perk database. (
 
-Tecnologías utilizadas: 
+Used technology:
 - Node.Js 
 - JavaScript
 - JQuery 
